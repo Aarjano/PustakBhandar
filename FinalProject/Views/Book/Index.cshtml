@@ -1,0 +1,197 @@
+@model IEnumerable<FinalProject.Models.Book>
+
+@{
+    ViewData["Title"] = "Books Index"; // More descriptive title
+    // Retrieve pagination, search, and filter data from ViewBag
+    var currentPage = ViewBag.CurrentPage;
+    var totalPages = ViewBag.TotalPages;
+    var searchString = ViewBag.SearchString;
+    var selectedGenreId = ViewBag.SelectedGenreId;
+    var selectedAuthorId = ViewBag.SelectedAuthorId;
+    var bookmarkedBookIds = ViewBag.BookmarkedBookIds as List<int>; // Retrieve bookmarked IDs
+
+    // Define a placeholder image URL for books without covers
+    var placeholderImageUrl = "https://placehold.co/128x192/e0e0e0/333333?text=No+Cover";
+}
+
+<h1>Book List</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</p>
+
+@* Add the search and filter form *@
+<form asp-controller="Book" asp-action="Index" method="get">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="searchString" class="form-label">Find by title, author, or ISBN:</label>
+            <input type="text" name="searchString" id="searchString" value="@searchString" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label for="genreId" class="form-label">Genre:</label>
+            <select name="genreId" id="genreId" asp-items="@ViewBag.Genres" class="form-select">
+                <option value="">-- All Genres --</option> @* Add "All" option *@
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="authorId" class="form-label">Author:</label>
+            <select name="authorId" id="authorId" asp-items="@ViewBag.Authors" class="form-select">
+                 <option value="">-- All Authors --</option> @* Add "All" option *@
+            </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+             <button type="submit" class="btn btn-primary me-2">Filter/Search</button>
+             <a asp-action="Index" class="btn btn-secondary">Clear</a> @* Changed "Back to Full List" to "Clear" *@
+        </div>
+    </div>
+</form>
+
+@* Display TempData message if it exists *@
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        @TempData["Message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+
+@* Display books in a card layout *@
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <img src="@(string.IsNullOrEmpty(item.CoverImageUrl) ? placeholderImageUrl : item.CoverImageUrl)"
+                     class="card-img-top" alt="Book Cover"
+                     style="height: 192px; object-fit: cover;"> @* Fixed height for consistent card size *@
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">@Html.DisplayFor(modelItem => item.Title)</h5>
+                    <p class="card-text text-muted small mb-1">
+                        by @(item.Author != null ? $"{item.Author.FirstName} {item.Author.LastName}" : "Unknown Author")
+                    </p>
+                     <p class="card-text text-muted small mb-1">
+                        Genre: @(item.Genre != null ? item.Genre.Name : "Unknown Genre")
+                    </p>
+                    <p class="card-text fw-bold mt-auto">@Html.DisplayFor(modelItem => item.ListPrice)</p> @* Push price to bottom *@
+                </div>
+                 <div class="card-footer bg-transparent border-top-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                         <div class="btn-group">
+                            <a asp-action="Details" asp-route-id="@item.BookId" class="btn btn-sm btn-outline-secondary">Details</a>
+
+                            @* Display Bookmark button or Bookmarked status *@
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                // Check if the current book's ID is in the list of bookmarked IDs
+                                if (bookmarkedBookIds != null && bookmarkedBookIds.Contains(item.BookId))
+                                {
+                                    <span class="btn btn-sm btn-success disabled" title="You have bookmarked this book.">Bookmarked</span>
+                                }
+                                else
+                                {
+                                    @* Create a small form for the Bookmark action *@
+                                    <form asp-controller="Book" asp-action="Bookmark" method="post" style="display:inline;">
+                                        <input type="hidden" name="bookId" value="@item.BookId" />
+                                        @Html.AntiForgeryToken() @* Include the anti-forgery token *@
+                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Bookmark this book">Bookmark</button>
+                                    </form>
+                                }
+
+                                @* --- Add to Cart Button (Calls AddToCart in BookController) --- *@
+                                @* Form targets BookController and AddToCart action as per your provided code *@
+                                <form asp-controller="Book" asp-action="AddToCart" method="post" style="display:inline;">
+                                    <input type="hidden" name="bookId" value="@item.BookId" />
+                                    @* Optional: Add a quantity input if needed, default is 1 in the controller *@
+                                    @* <input type="number" name="quantity" value="1" min="1" style="width: 50px;" /> *@
+                                    @Html.AntiForgeryToken() @* Include the anti-forgery token *@
+                                    <button type="submit" class="btn btn-sm btn-primary" title="Add this book to your shopping cart">Add to Cart</button>
+                                </form>
+                                @* --- End Add to Cart Button --- *@
+
+                                @* --- Add to Order Button (Now calls AddSingleItemOrder in OrdersController) --- *@
+                                @* Form targets OrdersController and the new AddSingleItemOrder action *@
+                                <form asp-controller="Orders" asp-action="AddSingleItemOrder" method="post" style="display:inline;">
+                                    <input type="hidden" name="bookId" value="@item.BookId" />
+                                    @* Optional: Add a quantity input if needed, default is 1 in the controller *@
+                                    @* <input type="number" name="quantity" value="1" min="1" style="width: 50px;" /> *@
+                                    @Html.AntiForgeryToken() @* Include the anti-forgery token *@
+                                    <button type="submit" class="btn btn-sm btn-success" title="Place an order for this book immediately">Add to Order</button>
+                                </form>
+                                @* --- End Add to Order Button --- *@
+
+                            }
+                            else
+                            {
+                                @* Optional: Show disabled buttons or messages for unauthenticated users *@
+                                <span class="btn btn-sm btn-outline-secondary disabled" title="Login to bookmark books">Bookmark</span>
+                                <span class="btn btn-sm btn-outline-secondary disabled" title="Login to add to cart">Add to Cart</span>
+                                <span class="btn btn-sm btn-outline-secondary disabled" title="Login to add to order">Add to Order</span>
+                            }
+                         </div>
+                         <small class="text-muted">Added: @item.DateAdded.ToString("yyyy-MM-dd")</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* Add Pagination Links *@
+@{
+    // Define route values for pagination links, preserving the current search string and filter IDs
+    var prevDisabled = (currentPage <= 1) ? "disabled" : "";
+    var nextDisabled = (currentPage >= totalPages) ? "disabled" : "";
+}
+
+@if (totalPages > 1) // Only show pagination if there's more than one page
+{
+    <nav aria-label="Page navigation example" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @prevDisabled">
+                 <a asp-action="Index"
+                   asp-route-pageNumber="@(currentPage - 1)"
+                   asp-route-searchString="@searchString"
+                   asp-route-genreId="@selectedGenreId"
+                   asp-route-authorId="@selectedAuthorId"
+                   class="page-link">
+                    Previous
+                </a>
+            </li>
+
+            @* Add page number links *@
+             @for (var i = 1; i <= totalPages; i++)
+            {
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a asp-action="Index"
+                       asp-route-pageNumber="@i"
+                       asp-route-searchString="@searchString"
+                       asp-route-genreId="@selectedGenreId"
+                       asp-route-authorId="@selectedAuthorId"
+                       class="page-link">
+                        @i
+                    </a>
+                </li>
+            }
+
+
+            <li class="page-item @nextDisabled">
+                <a asp-action="Index"
+                   asp-route-pageNumber="@(currentPage + 1)"
+                   asp-route-searchString="@searchString"
+                   asp-route-genreId="@selectedGenreId"
+                   asp-route-authorId="@selectedAuthorId"
+                   class="page-link">
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="text-center mt-2">
+        Page @currentPage of @totalPages
+    </div>
+}
+
+@* Add Delete link separately or remove if not needed on this view *@
+@* The Delete link was previously in the table row, now you might want a dedicated delete page or a modal *@

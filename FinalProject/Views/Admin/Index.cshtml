@@ -1,0 +1,51 @@
+@model IEnumerable<FinalProject.Models.Admin>
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<h1>Admin Dashboard</h1>
+
+<p>
+    Welcome to the Admin Dashboard! You can only see this page if you are logged in as an administrator.
+</p>
+
+@* Optional: Display a list of admins if you want to use the model *@
+@*
+<h2>All Admins</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Username)</th>
+            <th>@Html.DisplayNameFor(model => model.Email)</th>
+            <th>@Html.DisplayNameFor(model => model.FullName)</th>
+            <th>@Html.DisplayNameFor(model => model.LastLogin)</th>
+            <th>@Html.DisplayNameFor(model => model.DateAdded)</th>
+            <th>@Html.DisplayNameFor(model => model.DateUpdated)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.Username)</td>
+            <td>@Html.DisplayFor(modelItem => item.Email)</td>
+            <td>@Html.DisplayFor(modelItem => item.FullName)</td>
+            <td>@Html.DisplayFor(modelItem => item.LastLogin)</td>
+            <td>@Html.DisplayFor(modelItem => item.DateAdded)</td>
+            <td>@Html.DisplayFor(modelItem => item.DateUpdated)</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.AdminId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.AdminId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.AdminId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+*@
+
+@* Add a link to logout *@
+<form asp-controller="Admin" asp-action="Logout" method="post">
+    <button type="submit" class="btn btn-danger">Logout</button>
+</form>

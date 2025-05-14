@@ -1,0 +1,246 @@
+@model IEnumerable<FinalProject.Models.Book>
+
+@{
+    ViewData["Title"] = "Book Management";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Book Management</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Book Catalogue</h6>
+            <a asp-action="CreateBook" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Book
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <form asp-action="Index" method="get" class="form-inline">
+                        <div class="input-group">
+                            <input type="text" name="searchString" class="form-control" placeholder="Search books..." value="@ViewBag.SearchString">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end">
+                        <select id="genreFilter" class="form-control mr-2" style="width: 200px;">
+                            <option value="">All Genres</option>
+                            @foreach (var genre in ViewBag.Genres)
+                            {
+                                <option value="@genre.Value" selected="@(ViewBag.SelectedGenreId?.ToString() == genre.Value)">@genre.Text</option>
+                            }
+                        </select>
+                        <select id="authorFilter" class="form-control" style="width: 200px;">
+                            <option value="">All Authors</option>
+                            @foreach (var author in ViewBag.Authors)
+                            {
+                                <option value="@author.Value" selected="@(ViewBag.SelectedAuthorId?.ToString() == author.Value)">@author.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered" id="booksTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Cover</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Genre</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Library</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@(string.IsNullOrEmpty(item.CoverImageUrl) ? "https://placehold.co/128x192/e0e0e0/333333?text=No+Cover" : item.CoverImageUrl)" 
+                                         alt="@item.Title" style="width: 50px; height: 75px; object-fit: cover;">
+                                </td>
+                                <td>@item.Title</td>
+                                <td>@(item.Author?.FirstName + " " + item.Author?.LastName)</td>
+                                <td>@item.Genre?.Name</td>
+                                <td>@item.ListPrice.ToString("C")</td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control stock-input" 
+                                               value="@item.AvailabilityStock" 
+                                               data-book-id="@item.BookId"
+                                               min="0">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-primary update-stock" 
+                                                    data-book-id="@item.BookId">
+                                                <i class="fas fa-save"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input library-toggle" 
+                                               id="libraryToggle_@item.BookId" 
+                                               data-book-id="@item.BookId"
+                                               @(item.AvailabilityLibrary ? "checked" : "")>
+                                        <label class="custom-control-label" for="libraryToggle_@item.BookId"></label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a asp-action="Edit" asp-route-id="@item.BookId" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@item.BookId" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="fas fa-info-circle"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger delete-book" 
+                                                data-book-id="@item.BookId"
+                                                data-book-title="@item.Title">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (ViewBag.TotalPages > 1)
+            {
+                <div class="d-flex justify-content-center mt-4">
+                    <nav>
+                        <ul class="pagination">
+                            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { pageNumber = i, searchString = ViewBag.SearchString, genreId = ViewBag.SelectedGenreId, authorId = ViewBag.SelectedAuthorId })">@i</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            $('#booksTable').DataTable({
+                "paging": false,
+                "ordering": true,
+                "info": false,
+                "searching": false
+            });
+
+            // Handle genre filter change
+            $('#genreFilter').change(function() {
+                var genreId = $(this).val();
+                var authorId = $('#authorFilter').val();
+                var searchString = $('input[name="searchString"]').val();
+                window.location.href = '@Url.Action("Index")' + 
+                    '?genreId=' + genreId + 
+                    '&authorId=' + authorId + 
+                    '&searchString=' + searchString;
+            });
+
+            // Handle author filter change
+            $('#authorFilter').change(function() {
+                var authorId = $(this).val();
+                var genreId = $('#genreFilter').val();
+                var searchString = $('input[name="searchString"]').val();
+                window.location.href = '@Url.Action("Index")' + 
+                    '?authorId=' + authorId + 
+                    '&genreId=' + genreId + 
+                    '&searchString=' + searchString;
+            });
+
+            // Handle stock update
+            $('.update-stock').click(function() {
+                var button = $(this);
+                var bookId = button.data('book-id');
+                var newStock = button.closest('.input-group').find('.stock-input').val();
+
+                $.post('@Url.Action("UpdateStock")', {
+                    bookId: bookId,
+                    newStock: newStock
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        toastr.success('Stock updated successfully');
+                    } else {
+                        toastr.error('Failed to update stock');
+                    }
+                })
+                .fail(function() {
+                    toastr.error('An error occurred while updating stock');
+                });
+            });
+
+            // Handle library availability toggle
+            $('.library-toggle').change(function() {
+                var checkbox = $(this);
+                var bookId = checkbox.data('book-id');
+                var isAvailable = checkbox.prop('checked');
+
+                $.post('@Url.Action("ToggleLibraryAvailability")', {
+                    bookId: bookId,
+                    isAvailable: isAvailable
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        toastr.success('Library availability updated successfully');
+                    } else {
+                        toastr.error('Failed to update library availability');
+                        checkbox.prop('checked', !isAvailable);
+                    }
+                })
+                .fail(function() {
+                    toastr.error('An error occurred while updating library availability');
+                    checkbox.prop('checked', !isAvailable);
+                });
+            });
+
+            // Handle book deletion
+            $('.delete-book').click(function() {
+                var button = $(this);
+                var bookId = button.data('book-id');
+                var bookTitle = button.data('book-title');
+
+                if (confirm('Are you sure you want to delete "' + bookTitle + '"?')) {
+                    $.post('@Url.Action("Delete")', {
+                        id: bookId
+                    })
+                    .done(function(response) {
+                        if (response.success) {
+                            toastr.success('Book deleted successfully');
+                            button.closest('tr').fadeOut();
+                        } else {
+                            toastr.error('Failed to delete book');
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('An error occurred while deleting the book');
+                    });
+                }
+            });
+        });
+    </script>
+} 

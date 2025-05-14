@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>c559e9cb-cf21-4892-90cc-f32b0a804309</UserSecretsId>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0-beta.2" />
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\Members\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Members\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Members\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Members\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Members\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Book\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Book\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Book\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Book\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Book\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Author\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Author\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Author\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Author\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Author\Index.cshtml" />
+    </ItemGroup>
+
+</Project>
